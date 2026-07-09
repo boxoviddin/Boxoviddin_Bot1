@@ -1,80 +1,64 @@
-import asyncio
-import logging
-import sys
-from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters import CommandStart
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram.fsm.state import StatesGroup, State
-from aiogram.fsm.context import FSMContext
-from aiogram.types import BotCommand
+from flask import Flask, request, jsonify
+import requests
 
-# Token va Admin ID
-TOKEN = "8215613212:AAEmwln_zfLBYazuYbzynqC0Fqg_uTQvr_k"
-ADMIN_ID = 7575052801
+app = Flask(__name__)
 
-logging.basicConfig(level=logging.INFO)
+# Bot sozlamalari
+BOT_TOKEN = '8988913587:AAFnXQYlUAgGJe_qZWFTMK1c16y6sR65-Kg'
+ADMIN_ID = '7575052801'
+WEB_APP_URL = 'https://keldibot-prodection.up.railway.app/index.html'  # Saytingiz manzili bilan almashtiring!
 
-bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher()
+BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-class ComplaintState(StatesGroup):
-    waiting_for_text = State()
+def send_message(chat_id, text, keyboard=None):
+    url = f"{BASE_URL}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML",
+        "reply_markup": keyboard
+    }
+    requests.post(url, json=payload)
 
-# 1. "🛍 Mahsulotlar" tugmasiga bosilganda Inline WebApp tugmasini ko'rsatish
-@dp.message(F.text == "🛍 Mahsulotlar")
-async def show_products(message: types.Message):
-    builder = InlineKeyboardBuilder()
-    # O'z saytingiz yoki ilova manzilingizni shu yerga qo'ying
-    builder.button(
-        text="📱 Ilovani ochish", 
-        web_app=types.WebAppInfo(url="https://google.com") 
-    )
-    await message.answer(
-        "Mahsulotlarimiz bilan tanishish uchun pastdagi tugmani bosing:", 
-        reply_markup=builder.as_markup()
-    )
+@app.route('/', methods=['POST'])
+def webhook():
+    update = request.get_json()
+    if 'message' in update:
+        chat_id = update['message']['chat']['id']
+        text = update['message'].get('text')
 
-# 2. Start komandasi va asosiy menyu
-@dp.message(CommandStart())
-async def start_command(message: types.Message):
-    builder = ReplyKeyboardBuilder()
-    builder.add(types.KeyboardButton(text="🛍 Mahsulotlar"))
-    builder.add(types.KeyboardButton(text="ℹ️ Biz haqimizda"))
-    builder.add(types.KeyboardButton(text="📞 Aloqa"))
-    builder.add(types.KeyboardButton(text="📝 Shikoyatlar"))
-    builder.adjust(2)
+        if text == '/start':
+            # Asosiy menyu
+            keyboard = {
+                "keyboard": [
+                    [{"text": "BRON QILISH", "web_app": {"url": WEB_APP_URL}}],
+                    [{"text": "ADMIN BILAN BOGLANISH"}],
+                    [{"text": "GAME CLUB JOYLASHUVI"}]
+                ],
+                "resize_keyboard": True
+            }
+            send_message(chat_id, "Keldi Botga xush kelibsiz! Quyidagilardan birini tanlang:", keyboard)
+        
+        elif text == 'ADMIN BILAN BOGLANISH':
+            send_message(chat_id, "👤 Admin: Zuxriddinov Boxoviddin\n📞 Telefon: +998886577553\nSavollaringiz bo'lsa, bog'lanishingiz mumkin.")
+            
+        elif text == 'GAME CLUB JOYLASHUVI':
+            info = (
+                "Xush kelibsiz! Bizning Game Club — bu sizning eng yaxshi hordiq maskaningiz! \n\n"
+                "Bizda eng so'nggi rusumdagi kuchli kompyuterlar va ultra tezkor internet mavjud. \n"
+                "Qulay kreslolar va yumshoq muhit sizga haqiqiy geymerlik zavqini taqdim etadi. \n"
+                "Do'stlaringiz bilan birga o'yin o'ynash uchun eng ideal joy. \n"
+                "Sifatli servis va doimo yordamga tayyor operatorlarimiz sizni kutmoqda. \n"
+                "Biz har kuni 24/7 sizning xizmatingizdamiz. \n"
+                "Joylashuvimiz juda qulay: Andijon viloyati, Shahrixon tumani. \n"
+                "Tojmahal to'yxonasi yonida joylashganmiz, kirib kelishingizni kutamiz! \n"
+                "Shunchaki o'yin emas, balki sifatli dam olishni tanlang. \n"
+                "Biz bilan o'yindan olingan zavq yanada yuqori darajada bo'ladi!"
+            )
+            send_message(chat_id, info)
+            
+    return jsonify({"status": "ok"})
 
-    await message.answer(
-        f"Xush kelibsiz, {message.from_user.full_name}!",
-        reply_markup=builder.as_markup(resize_keyboard=True, one_time_keyboard=False)
-    )
-
-# Boshqa handlerlar (o'zgarishsiz)
-@dp.message(F.text == "📞 Aloqa")
-async def contact_handler(message: types.Message):
-    await message.answer("📞 Admin: @admin_username\nTelefon: +998886577553")
-
-@dp.message(F.text == "ℹ️ Biz haqimizda")
-async def about_us_handler(message: types.Message):
-    await message.answer("Biz eng sifatli mahsulotlarni yetkazib beramiz!")
-
-@dp.message(F.text == "📝 Shikoyatlar")
-async def complaint_start(message: types.Message, state: FSMContext):
-    await state.set_state(ComplaintState.waiting_for_text)
-    await message.answer("Shikoyatingizni yozib yuboring:")
-
-@dp.message(ComplaintState.waiting_for_text)
-async def process_complaint(message: types.Message, state: FSMContext):
-    await bot.send_message(ADMIN_ID, f"📩 Yangi xabar: {message.text}")
-    await message.answer("✅ Yuborildi.")
-    await state.clear()
-
-async def main():
-    # Menyu tugmalarini (Menu button) o'rnatish
-    await bot.set_my_commands([BotCommand(command="start", description="Botni qayta ishga tushirish")])
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    # Hosting platformalari odatda PORT o'zgaruvchisini taqdim etadi
+    app.run(host='0.0.0.0', port=5000)
