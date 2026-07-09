@@ -11,7 +11,7 @@ WEB_APP_URL = 'https://keldibot-prodection.up.railway.app/index.html'
 
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 # Railway-dagi loyihangizning umumiy manzili (Domeni)
-SERVER_URL = "https://boxoviddin-bot1-production.up.railway.app"  
+SERVER_URL = "boxoviddinbot1-production.up.railway.app"  
 
 def send_message(chat_id, text, keyboard=None):
     url = f"{BASE_URL}/sendMessage"
@@ -73,7 +73,7 @@ def webhook():
             
     return jsonify({"status": "ok"})
 
-if __name__ == '__main__':
+if name == '__main__':
     set_webhook()
     port = int(os.environ.get("PORT", 8000))
     app.run(host='0.0.0.0', port=port)
