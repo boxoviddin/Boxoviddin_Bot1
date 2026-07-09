@@ -45,7 +45,7 @@ def webhook():
         if text == '/start':
             keyboard = {
                 "keyboard": [
-                    {"text": "BRON QILISH", "web_app": {"url": WEB_APP_URL}}],
+                    [{"text": "BRON QILISH", "web_app": {"url": WEB_APP_URL}}],
                     [{"text": "ADMIN BILAN BOGLANISH"}],
                     [{"text": "GAME CLUB JOYLASHUVI"}]
                 ],
@@ -73,7 +73,6 @@ def webhook():
             
     return jsonify({"status": "ok"})
 
-# Mana shu yerda 'name' so'zi '__name__' ga almashtirildi
 if __name__ == '__main__':
     set_webhook()
     port = int(os.environ.get("PORT", 8000))
