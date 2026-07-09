@@ -1,14 +1,17 @@
-from flask import Flask, request, jsonify
+import os
 import requests
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
 # Bot sozlamalari
 BOT_TOKEN = '8988913587:AAFnXQYlUAgGJe_qZWFTMK1c16y6sR65-Kg'
 ADMIN_ID = '7575052801'
-WEB_APP_URL = 'https://keldibot-prodection.up.railway.app/index.html'  # Saytingiz manzili bilan almashtiring!
+WEB_APP_URL = 'https://keldibot-prodection.up.railway.app/index.html'
 
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
+# Railway-dagi loyihangizning umumiy manzili (Domeni)
+SERVER_URL = "https://boxoviddin-bot1-production.up.railway.app"  
 
 def send_message(chat_id, text, keyboard=None):
     url = f"{BASE_URL}/sendMessage"
@@ -18,17 +21,28 @@ def send_message(chat_id, text, keyboard=None):
         "parse_mode": "HTML",
         "reply_markup": keyboard
     }
-    requests.post(url, json=payload)
+    try:
+        requests.post(url, json=payload)
+    except Exception as e:
+        print(f"Xabar yuborishda xato: {e}")
+
+# Webhook-ni avtomatik sozlash
+def set_webhook():
+    webhook_url = f"{BASE_URL}/setWebhook?url={SERVER_URL}/"
+    try:
+        response = requests.get(webhook_url).json()
+        print(f"Webhook sozlamasi: {response}")
+    except Exception as e:
+        print(f"Webhook o'rnatishda xato: {e}")
 
 @app.route('/', methods=['POST'])
 def webhook():
     update = request.get_json()
-    if 'message' in update:
+    if update and 'message' in update:
         chat_id = update['message']['chat']['id']
         text = update['message'].get('text')
 
         if text == '/start':
-            # Asosiy menyu
             keyboard = {
                 "keyboard": [
                     [{"text": "BRON QILISH", "web_app": {"url": WEB_APP_URL}}],
@@ -60,5 +74,7 @@ def webhook():
     return jsonify({"status": "ok"})
 
 if __name__ == '__main__':
-    # Hosting platformalari odatda PORT o'zgaruvchisini taqdim etadi
-    app.run(host='0.0.0.0', port=5000)
+    set_webhook()
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host='0.0.0.0', port=port)
+
