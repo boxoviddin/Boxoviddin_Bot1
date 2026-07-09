@@ -66,12 +66,7 @@ def webhook():
                 "Biz har kuni 24/7 sizning xizmatingizdamiz. \n"
                 "Joylashuvimiz juda qulay: Andijon viloyati, Shahrixon tumani. \n"
                 "Tojmahal to'yxonasi yonida joylashganmiz, kirib kelishingizni kutamiz! \n"
-                "Shunchaki o'yin emas, balki sifatli dam olishni tanlang. \n"
-                "Biz bilan o'yindan olingan zavq yanada yuqori darajada bo'ladi!"
-            )
-            send_message(chat_id, info)
-            
-    return jsonify({"status": "ok"})
+                "Shunchabalki sifatli dam olishni tanlang. \
 
 if __name__ == '__main__':
     set_webhook()
