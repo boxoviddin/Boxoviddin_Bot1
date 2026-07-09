@@ -59,7 +59,7 @@ def webhook():
         elif text == 'GAME CLUB JOYLASHUVI':
             info = (
                 "Xush kelibsiz! Bizning Game Club — bu sizning eng yaxshi hordiq maskaningiz! \n\n"
-                "Bizda eng so'nggi rusumdagi kuchli kompyuterlar va ultra tezkor internet mavjud. \n"
+                "Bizda eng so'nggi rusumdagi kuchli kompyuterlar va ultra tezkor internet marxat. \n"
                 "Qulay kreslolar va yumshoq muhit sizga haqiqiy geymerlik zavqini taqdim etadi. \n"
                 "Do'stlaringiz bilan birga o'yin o'ynash uchun eng ideal joy. \n"
                 "Sifatli servis va doimo yordamga tayyor operatorlarimiz sizni kutmoqda. \n"
@@ -73,8 +73,7 @@ def webhook():
             
     return jsonify({"status": "ok"})
 
-if __name__ == '__main__':
+if name == '__main__':
     set_webhook()
     port = int(os.environ.get("PORT", 8000))
     app.run(host='0.0.0.0', port=port)
-
