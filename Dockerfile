@@ -2,9 +2,10 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Kutubxonalarni requirements.txt faylisiz, toʻgʻridan-toʻgʻri oʻrnatamiz
+RUN pip install --no-cache-dir flask requests
 
 COPY . .
 
 CMD ["python", "main.py"]
+
